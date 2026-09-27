@@ -1,5 +1,6 @@
 
 import {convert} from "html-to-text"
+import { OpenUrlOutputSchema } from "./schema";
 //fetch each and every page
 // the llm  can'tdirect browse the web
 // code we write act as a browser tool, we decide what content is safe and what we want to model show
@@ -36,13 +37,33 @@ export async function openUrl(url: string): Promise<string> {
     const text = contentType.includes("text/html") ? 
     convert(htmlContent, {
         wordwrap: false,
-        selectors:
+        selectors: [{
+            selector:'nav', format: 'skip'
+        },
+        {
+            selector:'header', format: 'skip'       
+        },
+        {
+            selector:'footer', format: 'skip'
+        },
+        {
+            selector:'script', format: 'skip'
+        },
+        {
+            selector:'style', format: 'skip'
+        }
+    ]
+}) : htmlContent;
+
+//step 5 cleaned
+  const cleanedContent = text.replace(/\s+/g, ' ').trim();
+
+  const capped = cleanedContent.length > 8000 ? cleanedContent.slice(0, 8000) : cleanedContent;
+
+  return OpenUrlOutputSchema.parse({
+    url: normalized.toString(),
+    content: capped
+  }).content;
 
 
-
-  
-    return htmlContent;
 }
-
-
-
